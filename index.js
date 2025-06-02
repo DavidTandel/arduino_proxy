@@ -1,28 +1,27 @@
-const express = require('express');
-const axios = require('axios');
+const express = require("express");
+const axios = require("axios");
 const app = express();
 
-const AUTH_TOKEN = process.env.AUTH_TOKEN; // Set this in Render Dashboard
+// Replace this with your actual Google Sheets / Pipedream endpoint
+const FORWARD_URL = "https://eo4r3r1fwqu0t31.m.pipedream.net";
 
-app.get('/', async (req, res) => {
-  const token = req.headers['x-auth-token'];
-
-  if (token !== AUTH_TOKEN) {
-    return res.status(403).send('Forbidden: Invalid token');
-  }
-
-  const url = 'https://eo4r3r1fwqu0t31.m.pipedream.net' + req.originalUrl;
-
+app.get("/", async (req, res) => {
   try {
-    const response = await axios.get(url);
-    res.status(response.status).send(response.data);
+    const queryParams = req.query;
+
+    // Forward to Pipedream
+    const response = await axios.get(FORWARD_URL, { params: queryParams });
+
+    // Log and respond
+    console.log("✅ Forwarded data:", response.status);
+    res.status(200).send("✅ Data forwarded to Google Sheets");
   } catch (err) {
-    console.error('Proxy error:', err.message);
-    res.status(500).send('Proxy error: ' + err.message);
+    console.error("❌ Error forwarding data:", err.message);
+    res.status(500).send("❌ Failed to forward data");
   }
 });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Proxy server running on port ${PORT}`);
+  console.log(`✅ Proxy server running on port ${PORT}`);
 });
